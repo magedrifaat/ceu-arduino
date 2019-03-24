@@ -1,0 +1,29 @@
+#include "out.ceu"
+#include "wclock.ceu"
+#include "adc.ceu"
+
+/*
+*  This example demonstrates conrolling the blinking 
+*  speed of an LED using the reading of a potentiometer.
+*/
+
+output high/low OUT_13;
+
+spawn Adc();
+var r32 speed = 1.0;  // 1 blink per second
+
+par do
+    loop do
+        await 100ms;
+        var int reading = await Adc_Conversion(_A1);
+        speed = 1.0 + reading * 4.0 / 1023.0;  // [1, 5] blinks per second
+    end
+with
+    loop do
+        emit OUT_13(high);
+        await ((500.0 / speed) as int)ms;  // half the time on, the other half off
+        emit OUT_13(low);
+        await ((500.0 / speed) as int)ms;
+    end
+end
+
